@@ -82,6 +82,11 @@ pub fn implementation(input: DeriveInput) -> syn::Result<TokenStream> {
             None => quote! {py.None() } ,
         };
 
+        let metadata = match &d.metadata {
+            Some(meta) => quote! { #meta },
+            None => quote! {py.None() } ,
+        };
+
         let r = quote! {
             let field_name = ::pyo3::intern!(py, #pyname);
             // python <= 3.9 does not have kw_only, python <= 3.13 does not have doc
@@ -93,7 +98,7 @@ pub fn implementation(input: DeriveInput) -> syn::Result<TokenStream> {
                     ::pyo3::types::PyBool::new(py, #repr), // repr
                     py.None(), // hash
                     py.None(), // compare
-                    py.None(), // metadata
+                    #metadata, // metadata
                     ::pyo3::types::PyBool::new(py, #kw_only), // kw_only
                     #field_doc, // doc
                 );
@@ -106,7 +111,7 @@ pub fn implementation(input: DeriveInput) -> syn::Result<TokenStream> {
                     ::pyo3::types::PyBool::new(py, #repr), // repr
                     py.None(), // hash
                     py.None(), // compare
-                    py.None(), // metadata
+                    #metadata, // metadata
                     ::pyo3::types::PyBool::new(py, #kw_only), // kw_only
                 );
                 Field.call1(args)
@@ -118,7 +123,7 @@ pub fn implementation(input: DeriveInput) -> syn::Result<TokenStream> {
                     ::pyo3::types::PyBool::new(py, #repr), // repr
                     py.None(), // hash
                     py.None(), // compare
-                    py.None(), // metadata
+                    #metadata, // metadata
                 );
                 Field.call1(args)
             }?;

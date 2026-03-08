@@ -54,6 +54,7 @@ pub(crate) struct FieldData<'a> {
     pub(crate) default: Option<Expr>,
     default_factory: Option<bool>,
     pub(crate) annotation: Option<Cow<'a, str>>,
+    pub(crate) metadata: Option<Expr>,
 }
 
 impl FieldData<'_> {
@@ -188,6 +189,7 @@ impl FieldData<'_> {
                     default: pyderive_field_opt.default,
                     default_factory: pyderive_field_opt.default_factory,
                     annotation: pyderive_field_opt.annotation,
+                    metadata: pyderive_field_opt.metadata,
                 })
             })
             .collect::<Result<Vec<_>>>()

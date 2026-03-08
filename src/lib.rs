@@ -299,6 +299,11 @@
 //!   The derive macro [`PyDataclassFields`] reads this attribute,
 //!   see [`PyDataclassFields`] for detail.
 //!
+//! - `#[pyderive(metadata=<expr>)]`
+//!
+//!   The derive macro [`PyDataclassFields`] reads this attribute,
+//!   see [`PyDataclassFields`] for detail.
+//!
 //! [keyword-only-arguments]: https://docs.python.org/3/tutorial/controlflow.html#keyword-only-arguments
 //! [KW_ONLY]: https://docs.python.org/3/library/dataclasses.html#dataclasses.KW_ONLY
 //! [MISSING]: https://docs.python.org/3/library/dataclasses.html#dataclasses.MISSING
@@ -383,7 +388,7 @@ pub mod ops;
 /// | `repr`                        | ✅                                 |
 /// | `hash`                        | ❌ (`None` for pyderive)           |
 /// | `compare`                     | ❌ (`None` for pyderive)           |
-/// | `metadata`                    | ✅ (empty for pyderive)            |
+/// | `metadata`                    | ✅ (`<expr>` or `None`)           |
 /// | `kw_only`                     | ✅                                 |
 /// | `doc`                         | ✅ (from the rust #[doc]/`///`)   |
 ///
@@ -412,6 +417,9 @@ pub mod ops;
 ///    from `__new__()`'s one, that is, they have different object IDs.
 ///    This calls `__set_name__()` of `__dataclass_fields__` only,
 ///    but not `__new__()`'s one).
+/// 6. Attribute `metadata` can be set by using `#[pyderive(metadata=<expr>)]`.
+///    This will be evaluated at any call to `__new__`.
+///    The expression **must** implement `PyMapping`
 ///
 /// [dataclasses]: https://docs.python.org/3/library/dataclasses.html
 /// [dataclass]: https://docs.python.org/3/library/dataclasses.html#dataclasses.dataclass

@@ -138,6 +138,7 @@ pub(crate) struct PyderiveFieldOption<'a> {
     pub(crate) default: Option<Expr>,
     pub(crate) default_factory: Option<bool>,
     pub(crate) annotation: Option<Cow<'a, str>>,
+    pub(crate) metadata: Option<Expr>,
 }
 
 impl<'a> FromIterator<PyderiveFieldAttr> for Result<PyderiveFieldOption<'a>> {
@@ -265,6 +266,14 @@ impl<'a> FromIterator<PyderiveFieldAttr> for Result<PyderiveFieldOption<'a>> {
                     }
                     None => {
                         new.annotation = Some(Cow::from(v.right.value()));
+                    }
+                },
+                PyderiveFieldAttr::Metadata(v) => match new.metadata {
+                    Some(_) => {
+                        return Err(syn::Error::new(v.left.span(), "duplicated default"));
+                    }
+                    None => {
+                        new.metadata = Some(*v.right);
                     }
                 },
             }
@@ -502,6 +511,7 @@ pub(crate) mod pyderive_field {
         syn::custom_keyword!(default);
         syn::custom_keyword!(default_factory);
         syn::custom_keyword!(annotation);
+        syn::custom_keyword!(metadata);
     }
 
     #[derive(Debug)]
@@ -551,6 +561,7 @@ pub(crate) mod pyderive_field {
         Default(ExprAssign),
         DefaultFactory(OptionFieldAttr<kw::default_factory, LitBool>),
         Annotation(ExprAssignGeneric<kw::annotation, LitStr>),
+        Metadata(ExprAssign),
     }
 
     impl Parse for PyderiveFieldAttr {
@@ -578,6 +589,8 @@ pub(crate) mod pyderive_field {
                 Ok(Self::DefaultFactory(input.parse()?))
             } else if lookahead.peek(kw::annotation) {
                 Ok(Self::Annotation(input.parse()?))
+            } else if lookahead.peek(kw::metadata) {
+                Ok(Self::Metadata(input.parse()?))
             } else {
                 Err(lookahead.error())
             }
