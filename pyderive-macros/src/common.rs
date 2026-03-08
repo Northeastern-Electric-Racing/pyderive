@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use syn::{ExprLit, Lit, Meta};
 
 use quote::format_ident;
 use syn::{
@@ -49,6 +50,7 @@ pub(crate) struct FieldData<'a> {
     len: Option<bool>,
     kw_only: Option<bool>,
     dataclass_field: Option<bool>,
+    field_doc: Option<String>,
     pub(crate) default: Option<Expr>,
     default_factory: Option<bool>,
     pub(crate) annotation: Option<Cow<'a, str>>,
@@ -80,6 +82,9 @@ impl FieldData<'_> {
     }
     pub(crate) fn dataclass_field(&self) -> bool {
         self.dataclass_field.unwrap_or(true)
+    }
+    pub(crate) fn field_doc(&self) -> Option<String> {
+        self.field_doc.clone()
     }
     pub(crate) fn default_factory(&self) -> bool {
         self.default_factory.unwrap_or(false)
@@ -121,6 +126,32 @@ impl FieldData<'_> {
                 let pyo3_field_opt = Pyo3FieldOption::try_from(&field.attrs)?;
                 let pyderive_field_opt = PyderiveFieldOption::try_from(&field.attrs)?;
 
+                let docs: String = field
+                    .attrs
+                    .iter()
+                    .filter_map(|attr| {
+                        if !attr.path().is_ident("doc") {
+                            return None;
+                        }
+
+                        match &attr.meta {
+                            Meta::NameValue(nv) => {
+                                if let Expr::Lit(ExprLit {
+                                    lit: Lit::Str(s), ..
+                                }) = &nv.value
+                                {
+                                    Some(s.value())
+                                } else {
+                                    None
+                                }
+                            }
+                            _ => None,
+                        }
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n");
+                let fdoc = if docs.is_empty() { None } else { Some(docs) };
+
                 let get = pyo3_struct_op.get || pyo3_field_opt.get;
                 let set = pyo3_struct_op.set || pyo3_field_opt.set;
                 let pyname = match pyo3_field_opt.name {
@@ -153,6 +184,7 @@ impl FieldData<'_> {
                     len: pyderive_field_opt.len,
                     kw_only: pyderive_field_opt.kw_only,
                     dataclass_field: pyderive_field_opt.dataclass_field,
+                    field_doc: fdoc,
                     default: pyderive_field_opt.default,
                     default_factory: pyderive_field_opt.default_factory,
                     annotation: pyderive_field_opt.annotation,

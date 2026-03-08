@@ -77,6 +77,11 @@ pub fn implementation(input: DeriveInput) -> syn::Result<TokenStream> {
             format_ident!("{}", "_FIELD_CLASSVAR")
         };
 
+        let field_doc = match d.field_doc() {
+            Some(doc) => quote! { #doc },
+            None => quote! {py.None() } ,
+        };
+
         let r = quote! {
             let field_name = ::pyo3::intern!(py, #pyname);
             // python <= 3.9 does not have kw_only, python <= 3.13 does not have doc
@@ -90,7 +95,7 @@ pub fn implementation(input: DeriveInput) -> syn::Result<TokenStream> {
                     py.None(), // compare
                     py.None(), // metadata
                     ::pyo3::types::PyBool::new(py, #kw_only), // kw_only
-                    py.None(), // doc
+                    #field_doc, // doc
                 );
                 Field.call1(args)
             } else if py.version_info() >= (3, 10) {
