@@ -38,7 +38,7 @@ pub fn implementation(input: DeriveInput) -> syn::Result<TokenStream> {
                                 py,
                                 ::std::option::Option::Some(
                                     // make &'static CStr
-                                    // we check #name contains only one \0 above 
+                                    // we check #name contains only one \0 above
                                     unsafe { ::std::ffi::CStr::from_bytes_with_nul_unchecked(#name.as_bytes()) }
                                 ),
                                 ::std::option::Option::None,
@@ -79,8 +79,21 @@ pub fn implementation(input: DeriveInput) -> syn::Result<TokenStream> {
 
         let r = quote! {
             let field_name = ::pyo3::intern!(py, #pyname);
-            // python <= 3.9 does not have kw_only
-            let field = if py.version_info() >= (3, 10) {
+            // python <= 3.9 does not have kw_only, python <= 3.13 does not have doc
+            let field = if py.version_info() >= (3, 14) {
+                let args = (
+                    #default, // default
+                    #default_factory, // default_factory
+                    ::pyo3::types::PyBool::new(py, #new), // new
+                    ::pyo3::types::PyBool::new(py, #repr), // repr
+                    py.None(), // hash
+                    py.None(), // compare
+                    py.None(), // metadata
+                    ::pyo3::types::PyBool::new(py, #kw_only), // kw_only
+                    py.None(), // doc
+                );
+                Field.call1(args)
+            } else if py.version_info() >= (3, 10) {
                 let args = (
                     #default, // default
                     #default_factory, // default_factory
