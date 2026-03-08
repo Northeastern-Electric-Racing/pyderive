@@ -195,7 +195,7 @@
 //!        ```
 //!
 //!     2. `#[pyderive(new=false)]`
-//!        
+//!
 //!        The field is excluded from the arguments,
 //!        and initialized by [`Default::default()`] in the `__new__()` method.
 //!        We note that it is evaluated on every `__new__()` call.
@@ -249,7 +249,7 @@
 //!   where `<expr>` is given by `#[pyderive(default=<expr>)]`.
 //!   Notes, `default_factory=false` has no effect,
 //!   If the field is not marked by `#[pyderive(default=<expr>)]`, this ignores.
-//!    
+//!
 //!   See [`PyDataclassFields`] for detail.
 //!
 //! - `#[pyderive(kw_only=true)]`
@@ -385,6 +385,7 @@ pub mod ops;
 /// | `compare`                     | ❌ (`None` for pyderive)           |
 /// | `metadata`                    | ✅ (empty for pyderive)            |
 /// | `kw_only`                     | ✅                                 |
+/// | `doc`                         | ✅ (from the rust #[doc]/`///`)   |
 ///
 /// 1. The `type` attribute of `Field` is `None` as default.
 ///    If the field is marked by `#[pyderive(annotation=<type>)]`,
